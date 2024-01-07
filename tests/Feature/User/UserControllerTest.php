@@ -25,7 +25,7 @@ class UserControllerTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-            ->patch(route('profile.update', ['user' => $user->id]), [
+            ->patch(route('user.profile.update', ['user' => $user->id]), [
                 'firstname' => 'Update first name',
                 'lastname' => 'Update last name',
                 'username' => 'Update username',
@@ -55,7 +55,7 @@ class UserControllerTest extends TestCase
         $response = $this
             ->actingAs($user)
             ->from('dashboard')
-            ->patch('/password', [
+            ->patch('/update/password', [
                 'old_password' => 'old_password',
                 'new_password' => 'new_password',
                 'new_password_confirmation' => 'new_password_confirmation',
@@ -65,5 +65,37 @@ class UserControllerTest extends TestCase
             ->assertRedirect();
 
         $this->assertTrue(! Hash::check('new_password', $user->refresh()->password));
+    }
+
+    public function test_cannot_update_password_when_old_password_is_wrong()
+    {
+        $user = User::factory()->create();
+        $incorrectPassword = 'incorrect_old_password';
+
+        $response = $this->actingAs($user)
+            ->patch(route('user.password.update'), [
+                'old_password' => $incorrectPassword,
+                'new_password' => 'new_valid_password',
+                'new_password_confirmation' => 'new_valid_password',
+            ]);
+
+        $response->assertSessionHasErrors('old_password');
+        $response->assertRedirect();
+    }
+
+    public function test_cannot_update_password_when_confirmation_does_not_match()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->patch(route('user.password.update'), [
+                'old_password' => 'current_password',
+                'new_password' => 'new_valid_password',
+                'new_password_confirmation' => 'invalid_confirmation',
+            ]);
+
+        $errors = session('errors');
+        $this->assertTrue($errors->has('new_password'));
+        $response->assertRedirect();
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\UserController;
@@ -39,20 +38,31 @@ Route::get('/', function () {
 
 // User Dashboard
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [UserController::class, 'index'])->name('dashboard'); // REFACTORED!!!
-    Route::patch('/profile/{user}', [UserController::class, 'updateProfile'])->name('profile.update'); // REFACTORED
-    Route::get('/logout', [UserController::class, 'destroy'])->name('logout'); // REFACTORED
-    Route::patch('/password', [UserController::class, 'updatePassword'])->name('password.update'); // REFACTORED
+    Route::get('/dashboard', [UserController::class, 'index'])
+            ->name('dashboard'); // REFACTORED!!!
+    Route::patch('/update/profile/{user}', [UserController::class, 'updateProfile'])
+            ->name('user.profile.update'); // REFACTORED
+    Route::get('/logout', [UserController::class, 'logout'])
+            ->name('user.logout'); // REFACTORED
+    Route::patch('/update/password', [UserController::class, 'updatePassword'])
+            ->name('user.password.update'); // REFACTORED
 });
 
 // Vendor Dashboard In Admin Dashboard
 Route::middleware(['auth', 'role:vendor'])->group(function () {
-    Route::get('/vendor/dashboard', [VendorController::class, 'vendorDashboard'])->name('vendor.dashboard')->middleware('status:active');;
-    Route::get('/vendor/logout', [VendorController::class, 'vendorLogout'])->name('vendor.logout');
-    Route::get('/vendor/profile', [VendorController::class, 'vendorProfile'])->name('vendor.profile');
-    Route::post('/vendor/profile/store', [VendorController::class, 'vendorProfileStore'])->name('vendor.profile.store');
-    Route::get('/vendor/change/password', [VendorController::class, 'vendorChangePassword'])->name('vendor.change.password');
-    Route::post('/vendor/update/password', [VendorController::class, 'vendorUpdatePassword'])->name('vendor.update.password');
+    Route::get('/vendor/dashboard', [VendorController::class, 'index'])
+            ->name('vendor.dashboard')
+            ->middleware('status'); // REFACTORED
+    Route::get('/vendor/logout', [VendorController::class, 'logout'])
+            ->name('vendor.logout'); // REFACTORED
+    Route::get('/vendor/profile/{user:slug}', [VendorController::class, 'vendorProfile'])
+            ->name('vendor.profile'); // REFACTORED
+    Route::patch('/update/profile/{user}', [VendorController::class, 'update'])
+            ->name('vendor.profile.update'); 
+    Route::get('/vendor/change/password', [VendorController::class, 'vendorChangePassword'])
+            ->name('vendor.change.password');
+    Route::post('/vendor/update/password', [VendorController::class, 'vendorUpdatePassword'])
+            ->name('vendor.update.password');
     
     // Vendor Product Controller In Vendor Dashboard All && Add product
     Route::controller(VendorProductController::class)->group(function () {
